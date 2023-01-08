@@ -107,15 +107,16 @@ class PGM(nn.Module):
         Debug.print("After block, upper_feature", upper_feature)
         Debug.print("f_lower shape", f_lower)
         # f_lower => 1, 2048, 7, 7
-        # upper_feature 1, 512, 14, 14
-        return f_upper + (f_lower * upper_feature)
+        # upper_feature 1, 3, 14, 14
+        return f_lower * upper_feature # TODO: Gaving error, continue from here.
+        # return f_upper + (f_lower * upper_feature)
 
 
 class DC_PGM(nn.Module):
     def __init__(self, in_channels, out_channels, pgm_out_channels=None):
         super(DC_PGM, self).__init__()
         
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=3)
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=3, dilation=3)
         self.pgm1 = PGM(in_channels=512, out_channels=pgm_out_channels)
         
         self.conv2 = nn.Conv2d(in_channels=2560, out_channels=out_channels, kernel_size=3, stride=1, padding=3, dilation=3)
@@ -127,10 +128,9 @@ class DC_PGM(nn.Module):
 
     def forward(self, x):
         feature1 = self.conv1(x)
-        Debug.print("feature1 ", feature1) # 1, 512, 7, 7 after padding=1
+        Debug.print("feature1 ", feature1) # 1, 512, 7, 7 after padding=1 the output 1, 512, 3, 3
         Debug.print("x shape", x) # 1, 2048, 7, 7
-        Debug.end()
-        last_feature1 = self.pgm1(feature1, x)
+        last_feature1 = self.pgm1(x, feature1)
 
         # Debug.print("last_feature1", last_feature1)
 
@@ -150,13 +150,13 @@ class L_GCNN(nn.Module):
     def __init__(self, num_classes):
         super(L_GCNN, self).__init__()
         self.resnet = ResNet(pretrained=True)
-        self.level1 = nn.Sequential(
-            SCM(in_channels=64, out_channels=64),
-            SEM(in_channels=64, out_conv2d_channels=64, out_linear_channels=4),
-            PGM(in_channels=64, out_channels=num_classes),
-            SCM(in_channels=64, out_channels=64),
-            nn.Conv2d(in_channels=64, out_channels=num_classes, kernel_size=1),
-        )
+        # self.level1 = nn.Sequential(
+        #     SCM(in_channels=64, out_channels=64),
+        #     SEM(in_channels=64, out_conv2d_channels=64, out_linear_channels=4),
+        #     PGM(in_channels=64, out_channels=num_classes),
+        #     SCM(in_channels=64, out_channels=64),
+        #     nn.Conv2d(in_channels=64, out_channels=num_classes, kernel_size=1),
+        # )
         # self.level2 = nn.Sequential(
         #     SCM(),
         #     SEM(),

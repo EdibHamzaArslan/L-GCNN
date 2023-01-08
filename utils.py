@@ -1,5 +1,6 @@
 
 import sys
+import torch
 
 
 yellow = "\x1b[33;20m"
@@ -12,6 +13,10 @@ class Debug:
     @staticmethod
     def print(message, input):
         print(f"{red+message+reset} {input.shape}")
+    
+    @staticmethod
+    def print_primitives(message, input):
+        print(f"{green+message+reset} {input}")
     
     @staticmethod
     def end():
